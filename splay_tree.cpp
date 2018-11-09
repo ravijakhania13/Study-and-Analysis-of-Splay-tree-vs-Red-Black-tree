@@ -1,5 +1,4 @@
 #include <iostream>
-#include <stdlib.h>
 using namespace std;
 
 struct SplayNode
@@ -7,226 +6,270 @@ struct SplayNode
     int value;
     struct SplayNode *left;
     struct SplayNode *right;
+
+    SplayNode(int v): value(v), left(NULL), right(NULL) {}
 };
 
-struct SplayNode *Head;
-
-struct SplayNode* make_new_node(int val)
+class SplayTree
 {
-	struct SplayNode *temp = (struct SplayNode*) malloc(sizeof(struct SplayNode));
-	temp -> value = val;
-	temp -> left = NULL;
-	temp -> right = NULL;
-	return temp;
-}
+    SplayNode *root;
 
-struct SplayNode* zig(struct SplayNode *currentnode)
+    SplayNode* searchUtil(SplayNode*, int);
+    void preorderUtil(SplayNode*);
+    void inorderUtil(SplayNode*);
+    void clearUtil(SplayNode*);
+
+    SplayNode* zig   (SplayNode*);
+    SplayNode* zag   (SplayNode*);
+    SplayNode* zigzig(SplayNode*);
+    SplayNode* zagzig(SplayNode*);
+    SplayNode* zagzag(SplayNode*);
+    SplayNode* zigzag(SplayNode*);
+
+public:
+    SplayTree(): root(NULL) {}
+
+    void insert(int);
+    bool search(int);
+    void remove(int);
+    void preorder() { preorderUtil(root); cout << endl; }
+    void inorder() { inorderUtil(root); cout << endl; }
+
+    void clear() { clearUtil(root); root = NULL; }
+
+    ~SplayTree()
+    {
+        clear();
+    }
+};
+
+
+void SplayTree::clearUtil(SplayNode* node)
 {
-	struct SplayNode *temp = currentnode -> left;
-	currentnode -> left = currentnode -> left -> right;
-	temp -> right = currentnode;
-	return temp;
+    if(!node) return;
+
+    clearUtil(node->left);
+    clearUtil(node->right);
+    delete node;
 }
 
-struct SplayNode* zag(struct SplayNode *currentnode)
+
+// Right Rotate
+SplayNode* SplayTree::zig(SplayNode *node)
 {
-	struct SplayNode *temp = currentnode -> right;
-	currentnode -> right = currentnode -> right -> left;
-	temp -> left = currentnode;
-	return temp;	
+    SplayNode* l = node->left;
+    node->left = l->right;
+    l->right = node;
+    return l;
 }
 
-struct SplayNode* zigzig(struct SplayNode *currentnode)
+// Left Rotate
+SplayNode* SplayTree::zag(SplayNode *node)
 {
-	struct SplayNode *temp = currentnode -> left;
-	currentnode -> left = currentnode -> left -> right;
-	temp -> right = currentnode;
-	currentnode = temp;
-	currentnode = zig(currentnode);
-	return currentnode;
+    SplayNode *r = node->right;
+    node->right = r->left;
+    r->left = node;
+    return r;
 }
 
-struct SplayNode* zagzig(struct SplayNode *currentnode)
+// Right-Right Rotate
+SplayNode* SplayTree::zigzig(SplayNode *node)
 {
-	struct SplayNode *temp = currentnode -> left -> right;
-	currentnode -> left -> right = currentnode -> left -> right -> left;
-	temp -> left = currentnode -> left;
-	currentnode -> left = temp;
-	currentnode = zig (currentnode);
-	return currentnode;
+    node = zig(node);
+    return zig(node);
 }
 
-struct SplayNode* zagzag(struct SplayNode *currentnode)
+// Left-Left Rotate
+SplayNode* SplayTree::zagzag(SplayNode *node)
 {
-	struct SplayNode *temp = currentnode -> right;
-	currentnode -> right = currentnode -> right -> left;
-	temp -> left = currentnode;
-	currentnode = temp;
-	currentnode = zag(currentnode);
-	return currentnode;
+    node = zag(node);
+    return zag(node);
 }
 
-struct SplayNode* zigzag(struct SplayNode *currentnode)
+SplayNode* SplayTree::zagzig(SplayNode *node)
 {
-	struct SplayNode *temp = currentnode -> right -> left;
-	currentnode -> right -> left = currentnode -> right -> left -> right;
-	temp -> right = currentnode -> right;
-	currentnode -> right = temp;
-	currentnode = zag (currentnode);
-	return currentnode;
+    node->left = zag(node->left);
+    return zig(node);
 }
 
-struct SplayNode* search_node(struct SplayNode* currentnode,int val)
+SplayNode* SplayTree::zigzag(SplayNode *node)
 {
-	if(currentnode == NULL || currentnode -> value == val)
-		return currentnode;
-
-	if(currentnode -> value > val)
-	{
-		if(currentnode -> left == NULL)
-			return currentnode;
-
-		if(currentnode -> left ->value > val)
-		{
-			currentnode -> left -> left = search_node (currentnode -> left ->  left, val);
-
-			if(currentnode -> left -> left != NULL)
-				currentnode = zigzig (currentnode);
-			else
-				currentnode = zig (currentnode);
-		}
-		else if(currentnode -> left ->value < val)
-		{
-			currentnode -> left -> right = search_node (currentnode -> left ->  right, val);
-
-			if(currentnode -> left -> right != NULL)
-				currentnode = zagzig (currentnode);
-			else
-				currentnode = zig (currentnode);
-		}
-		else
-			currentnode = zig (currentnode);
-	}
-	else
-	{
-		if(currentnode -> right == NULL)
-			return currentnode;
-		if(currentnode -> right -> value < val)
-		{
-			currentnode -> right -> right = search_node (currentnode -> right -> right, val);
-
-			if(currentnode -> right -> right != NULL)
-				currentnode = zagzag (currentnode);
-			else
-				currentnode = zag (currentnode);
-		}
-		else if(currentnode -> right -> value > val)
-		{
-			currentnode -> right -> left = search_node (currentnode -> right -> left, val);
-			if(currentnode -> right -> left != NULL)
-				currentnode = zigzag (currentnode);
-			else
-				currentnode = zag (currentnode);
-		}
-		else
-			currentnode = zag (currentnode);
-	}
-	return currentnode;
+    node->right = zig(node->right);
+    return zag(node);
 }
 
-
-struct SplayNode* insert_node(struct SplayNode* currentnode,int val)
+SplayNode* SplayTree::searchUtil(SplayNode* node,int val)
 {
-	struct SplayNode *temp = make_new_node(val);
+    // Base cases: node is NULL or val is present at node
+    if(!node || node->value == val)
+        return node;
 
-	if(currentnode == NULL)
-		return temp;
+    // val lies in left subtree
+    if(node->value > val)
+    {
+        // Key is not in tree
+        if(!node->left) return node;
 
-	currentnode = search_node(currentnode, val);
+        if(node->left->value == val)
+            return zig(node);
 
-	if(currentnode -> value == val)
-		return currentnode;
-	
-	if(currentnode -> value > val)
-	{
-		temp -> right = currentnode;
-		temp -> left = currentnode -> left;
-		currentnode -> left = NULL;
-	}
+        // Zig-Zig (Left Left)
+        if(node->left->value > val)
+        {
+            // recursively bring val as root of left-left
+            node->left->left = searchUtil (node->left->left, val);
+            return (node->left->left) ? zigzig(node) : zig(node);
+        }
 
-	else
-	{
-		temp -> left = currentnode;
-		temp -> right = currentnode -> right;
-		currentnode -> right = NULL;
-	}
+        // Zag-Zig (Left Right)
+        // recursively bring val as root of left-right
+        node->left->right = searchUtil (node->left->right, val);
 
-	return temp;
+        return (node->left->right) ? zagzig(node) : zig(node);
+    }
+    else    // val lies in right subtree
+    {
+        // val is not in tree
+        if(!node->right) return node;
+
+        if (node->right->value == val)
+            return zag (node);
+
+        // Zag-Zag (Right Right)
+        if(node->right->value < val)
+        {
+            // recursively bring val as root of right-right
+            node->right->right = searchUtil (node->right->right, val);
+            return (node->right->right) ? zagzag(node) : zag(node);
+        }
+
+        // Zig-Zag (Right Left)
+        // recursively bring val as root of right-left
+        node->right->left = searchUtil (node->right->left, val);
+
+        return (node->right->left) ? zigzag(node) : zag(node);
+    }
 }
 
-struct SplayNode* delete_node(struct SplayNode* currentnode,int val)
+
+bool SplayTree::search(int val)
 {
-	struct SplayNode* temp;
-
-	if(currentnode == NULL)
-		return currentnode;
-
-	search_node (currentnode, val);
-
-	if(currentnode -> value != val)
-		return currentnode;
-
-	if(currentnode -> left != NULL)
-	{
-		temp = currentnode;
-		currentnode = search_node (currentnode -> left, val);
-		currentnode -> right = temp -> right;
-	}
-	else
-	{	
-		temp = currentnode;
-		currentnode = currentnode -> right;
-	}
-	free (temp);
-	return currentnode;
+    root = searchUtil(root, val);
+    if (root->value != val)
+    {
+        cout << val << " not found in the SplayTree\n";
+        return false;
+    }
+    cout << val << " is present in the SplayTree\n";
+    return true;
 }
 
-void preorder(struct SplayNode *root) 
-{ 
-    if (root != NULL) 
-    { 
-        printf("%d ", root->value); 
-        preorder(root->left); 
-        preorder(root->right); 
-    } 
+void SplayTree::insert(int val)
+{
+    SplayNode* new_node = NULL;
+
+    if(!root)
+    {
+        root = new SplayNode(val);
+        return;
+    }
+
+    root = searchUtil(root, val);
+
+    if(root->value == val)
+        return;
+
+    new_node = new SplayNode(val);
+    if(root->value > val)
+    {
+        new_node->right = root;
+        new_node->left = root->left;
+        root->left = NULL;
+    }
+    else
+    {
+        new_node->left = root;
+        new_node->right = root->right;
+        root->right = NULL;
+    }
+    root = new_node;
 }
+
+
+void SplayTree::remove(int val)
+{
+    SplayNode* rem_node = NULL;
+
+    if(!root)
+        return;
+
+    root = searchUtil (root, val);
+
+    if(root->value != val)
+        return;
+
+    rem_node = root;
+    if(!root->left)
+    {
+        root = root->right;
+    }
+    else
+    {
+        root = searchUtil (root->left, val);
+        root->right = rem_node->right;
+    }
+    delete rem_node;
+    rem_node = NULL;
+}
+
+
+void SplayTree::inorderUtil(SplayNode* node)
+{
+    if(node)
+    {
+        inorderUtil(node->left);
+        cout << node->value << " ";
+        inorderUtil(node->right);
+    }
+}
+
+
+void SplayTree::preorderUtil(SplayNode* node)
+{
+    if(node)
+    {
+        cout << node->value << " ";
+        preorderUtil(node->left);
+        preorderUtil(node->right);
+    }
+}
+
 
 int main()
 {
+    SplayTree splay_tree;
 
-	// struct SplayNode *root = make_new_node(100); 
- //    root->left = make_new_node(50); 
- //    root->right = make_new_node(200); 
- //    root->left->left = make_new_node(40); 
- //    root->left->left->left = make_new_node(30); 
- //    root->left->left->left->left = make_new_node(20); 
-  
- //    root = search_node(root, 20); 
-	struct SplayNode *root;
-	root= insert_node (root,30);
-	preorder(root);
-	cout<<endl;
-	root= insert_node (root,25);
-	preorder(root);
-	cout<<endl;
-	root= insert_node (root,60);
-	preorder(root);
-	cout<<endl;
-	root= insert_node (root,70);
-	preorder(root);
-	cout<<endl;
-	root= insert_node (root,27);
-    preorder(root);
-    cout<<endl;
-	return 0;
+    splay_tree.insert(30);
+    splay_tree.inorder();
+
+    splay_tree.insert(25);
+    splay_tree.inorder();
+
+    splay_tree.insert(60);
+    splay_tree.inorder();
+
+    splay_tree.insert(70);
+    splay_tree.inorder();
+
+    splay_tree.insert(27);
+    splay_tree.inorder();
+
+    splay_tree.search(25);
+    splay_tree.search(29);
+    splay_tree.search(70);
+    splay_tree.search(77);
+
+    splay_tree.remove(70);
+    splay_tree.search(70);
+    return 0;
 }
