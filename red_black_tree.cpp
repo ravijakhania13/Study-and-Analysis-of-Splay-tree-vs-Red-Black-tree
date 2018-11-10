@@ -2,17 +2,12 @@
  * C++ Program to Implement Red Black Tree
  */
 #include <iostream>
-#include <cstdio>
-#include <cstring>
-#include <algorithm>
-#include <cmath>
-#include <vector>
-#include <cstdlib>
 #include <cassert>
 #include <random>
 #include <chrono>
 #include <time.h>
 #include <fstream>
+
 #define INDENT_STEP  4
 
 using namespace std;
@@ -50,13 +45,6 @@ class RBTree
     RBTreeNode* searchNode(int);
     color       nodeColor(RBTreeNode*);
 
-    void verifyProperties();
-    void verifyProperty1(RBTreeNode* root);
-    void verifyProperty2(RBTreeNode* root);
-    void verifyProperty4(RBTreeNode* root);
-    void verifyProperty5(RBTreeNode* root);
-    void verifyProperty5_helper(RBTreeNode*, int, int*);
-
     void rotateLeft(RBTreeNode*);
     void rotateRight(RBTreeNode*);
     void replaceNode(RBTreeNode* oldn, RBTreeNode* newn);
@@ -76,7 +64,6 @@ class RBTree
 
     void clearUtil(RBTreeNode*);
     void print_helper(RBTreeNode*, int);
-
 
 public:
 
@@ -142,35 +129,6 @@ RBTreeNode* RBTree::uncle(RBTreeNode* n)
     return sibling(n->parent);
 }
 
-/*
- * Verifying Properties of Red black Tree
- */
-void RBTree::verifyProperties()
-{
-    verifyProperty1 (root);
-    verifyProperty2 (root);
-    verifyProperty4 (root);
-    verifyProperty5 (root);
-}
-
-/*
- * Verifying Property 1
- */
-void RBTree::verifyProperty1(RBTreeNode* n)
-{
-    assert (nodeColor(n) == RED || nodeColor(n) == BLACK);
-    if (!n) return;
-    verifyProperty1(n->left);
-    verifyProperty1(n->right);
-}
-
-/*
- * Verifying Property 2
- */
-void RBTree::verifyProperty2(RBTreeNode* root)
-{
-    assert (nodeColor(root) == BLACK);
-}
 
 /*
  * Returns color of a RBTreeNode*
@@ -179,56 +137,6 @@ color RBTree::nodeColor(RBTreeNode* n)
 {
     return n == NULL ? BLACK : n->color;
 }
-
-/*
- * Verifying Property 4
- */
-void RBTree::verifyProperty4(RBTreeNode* n)
-{
-    if (nodeColor(n) == RED)
-    {
-        assert (nodeColor(n->left) == BLACK);
-        assert (nodeColor(n->right) == BLACK);
-        assert (nodeColor(n->parent) == BLACK);
-    }
-    if (!n) return;
-    verifyProperty4(n->left);
-    verifyProperty4(n->right);
-}
-
-
-/*
- * Verifying Property 5
- */
-void RBTree::verifyProperty5(RBTreeNode* root)
-{
-    int black_count_path = -1;
-    verifyProperty5_helper(root, 0, &black_count_path);
-}
-
-
-void RBTree::verifyProperty5_helper(RBTreeNode* n, int black_count, int* path_black_count)
-{
-    if (nodeColor(n) == BLACK)
-    {
-        black_count++;
-    }
-    if (n == NULL)
-    {
-        if (*path_black_count == -1)
-        {
-            *path_black_count = black_count;
-        }
-        else
-        {
-            assert (black_count == *path_black_count);
-        }
-        return;
-    }
-    verifyProperty5_helper(n->left,  black_count, path_black_count);
-    verifyProperty5_helper(n->right, black_count, path_black_count);
-}
-
 
 /*
  * RbTree Search
@@ -325,7 +233,7 @@ void RBTree::replaceNode(RBTreeNode* oldn, RBTreeNode* newn)
  */
 void RBTree::insert(int value)
 {
-    RBTreeNode* new_node = new RBTreeNode(value, RED, NULL, NULL);
+    RBTreeNode* new_node = new RBTreeNode(value, RED);
 
     if (!root)
     {
@@ -372,7 +280,6 @@ void RBTree::insert(int value)
         new_node->parent = n;
     }
     insertCase1(new_node);
-    verifyProperties();
 }
 
 
@@ -485,8 +392,6 @@ void RBTree::remove(int value)
     n = NULL;
 
     if(root) root->color = BLACK;
-
-    verifyProperties();
 }
 
 /*
@@ -652,7 +557,7 @@ int main()
     for (int k = 0 ; k < 10 ; k ++)
     {
         int j = 0;
-        for (int i = 100 ; i <= 10000 ; i *= 10, ++j)
+        for (int i = 100 ; i <= 1000000 ; i *= 10, ++j)
         {
             RBTree rbt;
 
@@ -662,7 +567,7 @@ int main()
 
             cout << "i = " << i << endl;
             start = clock();
-            for(int n = 0; n < 100000; ++n)
+            for(int n = 0; n < 10000000; ++n)
                 rbt.insert(distr(eng));
             end = clock();
 
