@@ -7,14 +7,19 @@ struct SplayNode
     struct SplayNode *left;
     struct SplayNode *right;
 
-    SplayNode(int v): value(v), left(NULL), right(NULL) {}
+    SplayNode(int v = -1): value(v), left(NULL), right(NULL) {}
 };
+
+enum Splaying { TOP_DOWN, BOTTOM_UP };
 
 class SplayTree
 {
     SplayNode *root;
+    Splaying splaying;
 
     SplayNode*                    splay(SplayNode*, int);
+    SplayNode*                    splayBottomUp(SplayNode*, int);
+    SplayNode*                    splayTopDown (SplayNode*, int);
     SplayNode*                    join (SplayNode*, SplayNode*);
     pair<SplayNode*, SplayNode*>  split(SplayNode*, int);
     void preorderUtil(SplayNode*);
@@ -29,7 +34,8 @@ class SplayTree
     SplayNode* zigzag(SplayNode*);
 
 public:
-    SplayTree(): root(NULL) {}
+
+    SplayTree(Splaying s = TOP_DOWN): splaying(s), root(NULL) {}
 
     void insert(int);
     bool search(int);
@@ -102,7 +108,7 @@ SplayNode* SplayTree::zigzag(SplayNode *node)
     return zag(node);
 }
 
-SplayNode* SplayTree::splay(SplayNode* node,int val)
+SplayNode* SplayTree::splayBottomUp(SplayNode* node, int val)
 {
     // Base cases: node is NULL or val is present at node
     if(!node || node->value == val)
@@ -121,13 +127,13 @@ SplayNode* SplayTree::splay(SplayNode* node,int val)
         if(node->left->value > val)
         {
             // recursively bring val as root of left-left
-            node->left->left = splay (node->left->left, val);
+            node->left->left = splayBottomUp (node->left->left, val);
             return (node->left->left) ? zigzig(node) : zig(node);
         }
 
         // Zag-Zig (Left Right)
         // recursively bring val as root of left-right
-        node->left->right = splay (node->left->right, val);
+        node->left->right = splayBottomUp (node->left->right, val);
 
         return (node->left->right) ? zagzig(node) : zig(node);
     }
@@ -143,16 +149,83 @@ SplayNode* SplayTree::splay(SplayNode* node,int val)
         if(node->right->value < val)
         {
             // recursively bring val as root of right-right
-            node->right->right = splay (node->right->right, val);
+            node->right->right = splayBottomUp (node->right->right, val);
             return (node->right->right) ? zagzag(node) : zag(node);
         }
 
         // Zig-Zag (Right Left)
         // recursively bring val as root of right-left
-        node->right->left = splay (node->right->left, val);
+        node->right->left = splayBottomUp (node->right->left, val);
 
         return (node->right->left) ? zigzag(node) : zag(node);
     }
+}
+
+
+SplayNode* SplayTree::splayTopDown(SplayNode* node, int val)
+{
+    if (!node) return NULL;
+
+    /* aux_node.right points to R tree;
+       aux_node.left  points to L Tree */
+    SplayNode aux_node;
+    SplayNode* left_max_node = &aux_node;
+    SplayNode* right_min_node = &aux_node;
+
+    while(1)
+    {
+        if (val == node->value)
+            break;
+
+        if(val < node->value)
+        {
+            if(!node->left)
+                break;
+            if(val < node->left->value)
+            {
+                // only zig-zig case needs to rotate once
+                node = zig(node);
+                if (!node->left)
+                    break;
+            }
+            /* Link to R Tree */
+            right_min_node->left = node;
+            right_min_node = right_min_node->left;
+            node = node->left;
+            right_min_node->left = NULL;
+        }
+        else
+        {
+            if(!node->right)
+                break;
+            if(val > node->right->value)
+            {
+                // only zag-zag mode need to rotate once
+                node = zag(node);
+                if(!node->right)
+                    break;
+            }
+            /* Link to L Tree */
+            left_max_node->right = node;
+            left_max_node = left_max_node->right;
+            node = node->right;
+            left_max_node->right = NULL;
+        }
+    }
+    /* assemble L Tree, Middle Tree and R tree */
+    left_max_node->right = node->left;
+    right_min_node->left = node->right;
+    node->left = aux_node.right;
+    node->right = aux_node.left;
+    return node;
+}
+
+SplayNode* SplayTree::splay(SplayNode* node, int val)
+{
+    if (splaying == BOTTOM_UP)
+        return splayBottomUp(node, val);
+    else
+        return splayTopDown(node, val);
 }
 
 
@@ -258,6 +331,7 @@ void SplayTree::preorderUtil(SplayNode* node)
 
 int main()
 {
+    //SplayTree splay_tree(BOTTOM_UP);
     SplayTree splay_tree;
 
     splay_tree.insert(30);
