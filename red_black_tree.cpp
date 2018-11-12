@@ -1,88 +1,10 @@
 /*
  * C++ Program to Implement Red Black Tree
  */
-#include <iostream>
-#include <cassert>
-#include <random>
-#include <chrono>
-#include <time.h>
-#include <fstream>
+//#include <cassert>
+#include "red_black_tree.h"
 
 #define INDENT_STEP  4
-
-using namespace std;
-
-enum color { RED, BLACK };
-
-/*
- * RBTree Node Declaration
- */
-struct RBTreeNode
-{
-    enum color color;
-    int value;
-    RBTreeNode *left, *right, *parent;
-
-    RBTreeNode (int v, enum color c, RBTreeNode* l = NULL, RBTreeNode* r = NULL): color(c), value(v), left(l), right(r) 
-    {
-        if (left) left->parent = this;
-        if (right) right->parent = this;
-        parent = NULL;
-    }
-};
-
-/*
- * Class RBTree Declaration
- */
-class RBTree
-{
-    RBTreeNode* root;
-
-    RBTreeNode* grandparent(RBTreeNode*);
-    RBTreeNode* sibling(RBTreeNode*);
-    RBTreeNode* uncle(RBTreeNode*);
-    RBTreeNode* maximumNode(RBTreeNode*);
-    RBTreeNode* searchNode(int);
-    color       nodeColor(RBTreeNode*);
-
-    void rotateLeft(RBTreeNode*);
-    void rotateRight(RBTreeNode*);
-    void replaceNode(RBTreeNode* oldn, RBTreeNode* newn);
-
-    void insertCase1(RBTreeNode*);
-    void insertCase2(RBTreeNode*);
-    void insertCase3(RBTreeNode*);
-    void insertCase4(RBTreeNode*);
-    void insertCase5(RBTreeNode*);
-
-    void removeCase1(RBTreeNode*);
-    void removeCase2(RBTreeNode*);
-    void removeCase3(RBTreeNode*);
-    void removeCase4(RBTreeNode*);
-    void removeCase5(RBTreeNode*);
-    void removeCase6(RBTreeNode*);
-
-    void clearUtil(RBTreeNode*);
-    void print_helper(RBTreeNode*, int);
-
-public:
-
-    RBTree(): root(NULL) {}
-
-    bool search(int);
-    void insert(int);
-    void remove(int);
-
-    void clear() { clearUtil(root); root = NULL; }
-    void print();
-
-    ~RBTree()
-    {
-        clear();
-    }
-
-};
-
 
 void RBTree::clearUtil(RBTreeNode* node)
 {
@@ -93,79 +15,73 @@ void RBTree::clearUtil(RBTreeNode* node)
     delete node;
 }
 
-
-/*
- * Return Grandparent of Node
- */
+// Return Grandparent of Node
 RBTreeNode* RBTree::grandparent(RBTreeNode* n)
 {
-    assert (n != NULL);
-    assert (n->parent != NULL);
-    assert (n->parent->parent != NULL);
+    //assert (n != NULL);
+    //assert (n->parent != NULL);
+    //assert (n->parent->parent != NULL);
     return n->parent->parent;
 }
 
-/*
- * Return Sibling of Node
- */
+// Return Sibling of Node
 RBTreeNode* RBTree::sibling(RBTreeNode* n)
 {
-    assert (n != NULL);
-    assert (n->parent != NULL);
+    //assert (n != NULL);
+    //assert (n->parent != NULL);
     if (n == n->parent->left)
         return n->parent->right;
     else
         return n->parent->left;
 }
 
-/*
- * Return Uncle of Node
- */
+// Return Uncle of Node
 RBTreeNode* RBTree::uncle(RBTreeNode* n)
 {
-    assert (n != NULL);
-    assert (n->parent != NULL);
-    assert (n->parent->parent != NULL);
+    //assert (n != NULL);
+    //assert (n->parent != NULL);
+    //assert (n->parent->parent != NULL);
     return sibling(n->parent);
 }
 
 
-/*
- * Returns color of a RBTreeNode*
- */
-color RBTree::nodeColor(RBTreeNode* n)
+// Returns color of a RBTreeNode*
+Color RBTree::nodeColor(RBTreeNode* n)
 {
-    return n == NULL ? BLACK : n->color;
+    return n == NULL ? Color::BLACK : n->color;
 }
 
-/*
- * RbTree Search
- */
+// RbTree Search
 bool RBTree::search(int value)
 {
+    num_comparisons = 0;
     RBTreeNode* n = searchNode(value);
+
+    num_search_comps += num_comparisons;
     return (n != NULL);
 }
 
 
-/*
- * RbTree Search Node
- */
+// RbTree Search Node
 RBTreeNode* RBTree::searchNode(int value)
 {
     RBTreeNode* n = root;
     while (n)
     {
+        /* Increment the number of comparisons
+           i.e. the number of nodes visited */
+        ++num_comparisons;
         if (n->value == value)
             break;
 
+        ++num_comparisons;
         if (value < n->value)
         {
             n = n->left;
         }
         else
         {
-            assert(value > n->value);
+            //assert(value > n->value);
             n = n->right;
         }
     }
@@ -173,12 +89,11 @@ RBTreeNode* RBTree::searchNode(int value)
 }
 
 
-
-/*
- * Rotate left
- */
+// Rotate left
 void RBTree::rotateLeft(RBTreeNode* n)
 {
+    ++num_rotations;
+
     RBTreeNode* r = n->right;
     replaceNode(n, r);
     n->right = r->left;
@@ -190,11 +105,11 @@ void RBTree::rotateLeft(RBTreeNode* n)
     n->parent = r;
 }
 
-/*
- * Rotate right
- */
+// Rotate right
 void RBTree::rotateRight(RBTreeNode* n)
 {
+    ++num_rotations;
+
     RBTreeNode* l = n->left;
     replaceNode(n, l);
     n->left = l->right;
@@ -206,9 +121,7 @@ void RBTree::rotateRight(RBTreeNode* n)
     n->parent = l;
 }
 
-/*
- * Replace a RBTreeNode*
- */
+// Replace a RBTreeNode*
 void RBTree::replaceNode(RBTreeNode* oldn, RBTreeNode* newn)
 {
     if (oldn->parent == NULL)
@@ -228,13 +141,12 @@ void RBTree::replaceNode(RBTreeNode* oldn, RBTreeNode* newn)
     }
 }
 
-/*
- * Insert RBTreeNode* into RBTree
- */
+// Insert RBTreeNode* into RBTree
 void RBTree::insert(int value)
 {
-    RBTreeNode* new_node = new RBTreeNode(value, RED);
+    RBTreeNode* new_node = new RBTreeNode(value, Color::RED);
 
+    num_comparisons = num_rotations = 0;
     if (!root)
     {
         root = new_node;
@@ -244,6 +156,9 @@ void RBTree::insert(int value)
         RBTreeNode* n = root;
         while (1)
         {
+            /* Increment the number of comparisons
+               i.e. the number of nodes visited */
+            ++num_comparisons;
             if (value == n->value)
             {
                 delete new_node;
@@ -251,6 +166,7 @@ void RBTree::insert(int value)
                 return;
             }
 
+            ++num_comparisons;
             if (value < n->value)
             {
                 if (!n->left)
@@ -265,7 +181,7 @@ void RBTree::insert(int value)
             }
             else
             {
-                assert (value > n->value);
+                //assert (value > n->value);
                 if (!n->right)
                 {
                     n->right = new_node;
@@ -280,43 +196,42 @@ void RBTree::insert(int value)
         new_node->parent = n;
     }
     insertCase1(new_node);
+    num_ins_comps += num_comparisons;
+    num_ins_rots += num_rotations;
 }
 
 
-/*
- * Inserting Case 1
- */
+// Inserting Case 1
 void RBTree::insertCase1(RBTreeNode* n)
 {
     if (n->parent == NULL)
-        n->color = BLACK;
+        n->color = Color::BLACK;
     else
         insertCase2(n);
 }
 
 
-/*
- * Inserting Case 2
- */
+// Inserting Case 2
 void RBTree::insertCase2(RBTreeNode* n)
 {
-    if (nodeColor(n->parent) == BLACK)
+    if (nodeColor(n->parent) == Color::BLACK)
+    {
         return;
+    }
     else
         insertCase3(n);
 }
 
 
-/*
- * Inserting Case 3
- */
+// Inserting Case 3
 void RBTree::insertCase3(RBTreeNode* n)
 {
-    if (nodeColor(uncle(n)) == RED)
+    if (nodeColor(uncle(n)) == Color::RED)
     {
-        n->parent->color = BLACK;
-        uncle(n)->color = BLACK;
-        grandparent(n)->color = RED;
+        n->parent->color = Color::BLACK;
+        uncle(n)->color = Color::BLACK;
+        grandparent(n)->color = Color::RED;
+
         insertCase1(grandparent(n));
     }
     else
@@ -325,9 +240,7 @@ void RBTree::insertCase3(RBTreeNode* n)
     }
 }
 
-/*
- * Inserting Case 4
- */
+// Inserting Case 4
 void RBTree::insertCase4(RBTreeNode* n)
 {
     if (n == n->parent->right && n->parent == grandparent(n)->left)
@@ -343,30 +256,28 @@ void RBTree::insertCase4(RBTreeNode* n)
     insertCase5(n);
 }
 
-/*
- * Inserting Case 5
- */
+// Inserting Case 5
 void RBTree::insertCase5(RBTreeNode* n)
 {
-    n->parent->color = BLACK;
-    grandparent(n)->color = RED;
+    n->parent->color = Color::BLACK;
+    grandparent(n)->color = Color::RED;
     if (n == n->parent->left && n->parent == grandparent(n)->left)
     {
         rotateRight(grandparent(n));
     }
     else
     {
-        assert (n == n->parent->right && n->parent == grandparent(n)->right);
+        //assert (n == n->parent->right && n->parent == grandparent(n)->right);
         rotateLeft(grandparent(n));
     }
 }
 
-/*
- * Delete Node from RBTree
- */
+// Delete Node from RBTree
 void RBTree::remove(int value)
 {
     RBTreeNode* child;
+    num_comparisons = num_rotations = 0;
+
     RBTreeNode* n = searchNode(value);
 
     if (!n) return;
@@ -378,10 +289,10 @@ void RBTree::remove(int value)
         n = pred;
     }
 
-    assert(n->left == NULL || n->right == NULL);
+    //assert(n->left == NULL || n->right == NULL);
     child = n->right == NULL ? n->left  : n->right;
 
-    if (nodeColor(n) == BLACK)
+    if (nodeColor(n) == Color::BLACK)
     {
         n->color = nodeColor(child);
         removeCase1(n);
@@ -391,15 +302,16 @@ void RBTree::remove(int value)
     delete n;
     n = NULL;
 
-    if(root) root->color = BLACK;
+    if(root) root->color = Color::BLACK;
+
+    num_del_comps += num_comparisons;
+    num_del_rots += num_rotations;
 }
 
-/*
- * Returns Maximum RBTreeNode*
- */
+// Returns Maximum RBTreeNode*
 RBTreeNode* RBTree::maximumNode(RBTreeNode* n)
 {
-    assert (n != NULL);
+    //assert (n != NULL);
     while (n->right)
     {
         n = n->right;
@@ -407,9 +319,7 @@ RBTreeNode* RBTree::maximumNode(RBTreeNode* n)
     return n;
 }
 
-/*
- * Deleting Case 1
- */
+// Deleting Case 1
 void RBTree::removeCase1(RBTreeNode* n)
 {
     if (!n->parent)
@@ -418,15 +328,13 @@ void RBTree::removeCase1(RBTreeNode* n)
         removeCase2(n);
 }
 
-/*
- * Deleting Case 2
- */
+// Deleting Case 2
 void RBTree::removeCase2(RBTreeNode* n)
 {
-    if (nodeColor(sibling(n)) == RED)
+    if (nodeColor(sibling(n)) == Color::RED)
     {
-        n->parent->color = RED;
-        sibling(n)->color = BLACK;
+        n->parent->color = Color::RED;
+        sibling(n)->color = Color::BLACK;
         if (n == n->parent->left)
             rotateLeft(n->parent);
         else
@@ -435,83 +343,73 @@ void RBTree::removeCase2(RBTreeNode* n)
     removeCase3(n);
 }
 
-/*
- * Deleting Case 3
- */
+// Deleting Case 3
 void RBTree::removeCase3(RBTreeNode* n)
 {
-    if (nodeColor(n->parent) == BLACK && nodeColor(sibling(n)) == BLACK &&
-        nodeColor(sibling(n)->left) == BLACK && nodeColor(sibling(n)->right) == BLACK)
+    if (nodeColor(n->parent) == Color::BLACK && nodeColor(sibling(n)) == Color::BLACK &&
+        nodeColor(sibling(n)->left) == Color::BLACK && nodeColor(sibling(n)->right) == Color::BLACK)
     {
-        sibling(n)->color = RED;
+        sibling(n)->color = Color::RED;
         removeCase1(n->parent);
     }
     else
         removeCase4(n);
 }
 
-/*
- * Deleting Case 4
- */
+// Deleting Case 4
 void RBTree::removeCase4(RBTreeNode* n)
 {
-    if (nodeColor(n->parent) == RED && nodeColor(sibling(n)) == BLACK &&
-        nodeColor(sibling(n)->left) == BLACK && nodeColor(sibling(n)->right) == BLACK)
+    if (nodeColor(n->parent) == Color::RED && nodeColor(sibling(n)) == Color::BLACK &&
+        nodeColor(sibling(n)->left) == Color::BLACK && nodeColor(sibling(n)->right) == Color::BLACK)
     {
-        sibling(n)->color = RED;
-        n->parent->color = BLACK;
+        sibling(n)->color = Color::RED;
+        n->parent->color = Color::BLACK;
     }
     else
         removeCase5(n);
 }
 
-/*
- * Deleting Case 5
- */
+// Deleting Case 5
 void RBTree::removeCase5(RBTreeNode* n)
 {
-    if (n == n->parent->left && nodeColor(sibling(n)) == BLACK &&
-        nodeColor(sibling(n)->left) == RED && nodeColor(sibling(n)->right) == BLACK)
+    if (n == n->parent->left && nodeColor(sibling(n)) == Color::BLACK &&
+        nodeColor(sibling(n)->left) == Color::RED && nodeColor(sibling(n)->right) == Color::BLACK)
     {
-        sibling(n)->color = RED;
-        sibling(n)->left->color = BLACK;
+        sibling(n)->color = Color::RED;
+        sibling(n)->left->color = Color::BLACK;
         rotateRight(sibling(n));
     }
-    else if (n == n->parent->right && nodeColor(sibling(n)) == BLACK &&
-             nodeColor(sibling(n)->right) == RED && nodeColor(sibling(n)->left) == BLACK)
+    else if (n == n->parent->right && nodeColor(sibling(n)) == Color::BLACK &&
+             nodeColor(sibling(n)->right) == Color::RED && nodeColor(sibling(n)->left) == Color::BLACK)
     {
-        sibling(n)->color = RED;
-        sibling(n)->right->color = BLACK;
+        sibling(n)->color = Color::RED;
+        sibling(n)->right->color = Color::BLACK;
         rotateLeft(sibling(n));
     }
     removeCase6(n);
 }
 
-/*
- * Deleting Case 6
- */
+// Deleting Case 6
 void RBTree::removeCase6(RBTreeNode* n)
 {
     sibling(n)->color = nodeColor(n->parent);
-    n->parent->color = BLACK;
+    n->parent->color = Color::BLACK;
     if (n == n->parent->left)
     {
-        assert (nodeColor(sibling(n)->right) == RED);
-        sibling(n)->right->color = BLACK;
+        //assert (nodeColor(sibling(n)->right) == Color::RED);
+        sibling(n)->right->color = Color::BLACK;
         rotateLeft(n->parent);
     }
     else
     {
-        assert (nodeColor(sibling(n)->left) == RED);
-        sibling(n)->left->color = BLACK;
+        //assert (nodeColor(sibling(n)->left) == Color::RED);
+        sibling(n)->left->color = Color::BLACK;
         rotateRight(n->parent);
     }
 }
 
 
-/*
- * Print RBTRee
- */
+// Print RBTRee
 void RBTree::print_helper(RBTreeNode* n, int indent)
 {
     if (!n)
@@ -522,12 +420,12 @@ void RBTree::print_helper(RBTreeNode* n, int indent)
     print_helper(n->right, indent + INDENT_STEP);
 
     for(int i = 0; i < indent; i++)
-        cout << " ";
+        std::cout << " ";
 
-    if (n->color == BLACK)
-        cout << n->value << endl;
+    if (n->color == Color::BLACK)
+        std::cout << n->value << std::endl;
     else
-        cout << "<" << n->value << ">" << endl;
+        std::cout << "<" << n->value << ">" << std::endl;
 
     print_helper(n->left, indent + INDENT_STEP);
 }
@@ -536,83 +434,9 @@ void RBTree::print()
 {
     if(!root)
     {
-        cout << "<empty tree>" << endl;
+        std::cout << "<empty tree>" << std::endl;
         return;
     }
     print_helper(root, 0);
-    cout << endl;
-}
-
-
-/*
- * Main Contains Menu
- */
-int main()
-{
-    double avg_insertion[5]={0,0};
-    double avg_searching[5]={0,0};
-    double avg_deletion[5]={0,0};
-
-    clock_t start, end;
-    for (int k = 0 ; k < 10 ; k ++)
-    {
-        int j = 0;
-        for (int i = 100 ; i <= 1000000 ; i *= 10, ++j)
-        {
-            RBTree rbt;
-
-            random_device rd;   // obtain a random number from hardware
-            mt19937 eng(rd());  // seed the generator
-            uniform_int_distribution<> distr(1, i); // define the range
-
-            cout << "i = " << i << endl;
-            start = clock();
-            for(int n = 0; n < 10000000; ++n)
-                rbt.insert(distr(eng));
-            end = clock();
-
-            avg_insertion[j] += ((double) (end - start)) / CLOCKS_PER_SEC;
-
-
-            random_device rd1;   // obtain a random number from hardware
-            mt19937 eng1(rd1()); // seed the generator
-            uniform_int_distribution<> distr1(i-100, i); // define the range
-
-            start = clock();
-            for(int n=0; n<1000000; ++n)
-                rbt.search(distr1(eng1));
-            end = clock();
-            avg_searching[j] += ((double) (end - start)) / CLOCKS_PER_SEC;
-
-
-            random_device rd2;     // obtain a random number from hardware
-            mt19937 eng2(rd2());   // seed the generator
-            uniform_int_distribution<> distr2(1, i); // define the range
-
-            start = clock();
-            for(int n=0; n<1000000; ++n)
-                rbt.remove(distr2(eng2));
-            end = clock();
-            avg_deletion[j] += ((double) (end - start)) / CLOCKS_PER_SEC;
-        }
-    }
-
-    ofstream myfile1,myfile2,myfile3;
-    myfile1.open ("RBT_insert.txt");
-    myfile2.open ("RBT_search.txt");
-    myfile3.open ("RBT_delete.txt");
-
-    for(int i = 0 ; i < 5 ; i++)
-    {
-        avg_insertion[i] /= 10;
-        avg_searching[i] /= 10;
-        avg_deletion[i] /= 10;
-
-        myfile1 << avg_insertion[i] << "\n";
-        myfile2 << avg_searching[i] << "\n";
-        myfile3 << avg_deletion[i] << "\n";
-        cout<< avg_insertion[i] << "\t" << avg_searching[i] << "\t" << avg_deletion[i]<<endl;
-    }
-
-    return 0;
+    std::cout << std::endl;
 }
