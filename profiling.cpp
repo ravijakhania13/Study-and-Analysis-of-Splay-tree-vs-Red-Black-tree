@@ -19,11 +19,11 @@ using namespace std;
 #define NUM_TRIALS    10
 
 double alpha_arr[] =     {0, 0.516, 0.687, 0.892, 0.975, 1.058, 1.257, 1.42};
-double skew_factor[] = {0.1,  0.10,  0.20,  0.40,  0.50,  0.60,  0.80, 0.90};
+double skew_factor[] = {0.01,  0.10,  0.20,  0.40,  0.50,  0.60,  0.80, 0.90};
 
-double t1_stree_BUS_values[7];
-double t1_stree_TDS_values[7];
-double t1_rbtree_values[7];
+double stree_BUS_values[7];
+double stree_TDS_values[7];
+double rbtree_values[7];
 
 // range - [min, max)
 int random(int min, int max)
@@ -106,57 +106,57 @@ void test_activity_ratio(SplayTree& stree_TDS, SplayTree& stree_BUS, RBTree& rbt
         rbtree_search_time += timer.duration_in_us();
     }
     stree_TDS.num_ins_comps /= (double) nDeletions * 1000.0;
-    t1_stree_TDS_values[0] += stree_TDS.num_ins_comps;
+    stree_TDS_values[0] += stree_TDS.num_ins_comps;
     stree_TDS.num_ins_rots /= (double) nDeletions * 1000.0;
-    t1_stree_TDS_values[1] += stree_TDS.num_ins_rots;
+    stree_TDS_values[1] += stree_TDS.num_ins_rots;
 
     stree_TDS.num_del_comps /= (double) nDeletions * 1000.0;
-    t1_stree_TDS_values[2] += stree_TDS.num_del_comps;
+    stree_TDS_values[2] += stree_TDS.num_del_comps;
     stree_TDS.num_del_rots /= (double) nDeletions * 1000.0;
-    t1_stree_TDS_values[3] += stree_TDS.num_del_rots;
+    stree_TDS_values[3] += stree_TDS.num_del_rots;
 
     stree_TDS.num_search_comps /= (double) nSearches * 1000.0;
-    t1_stree_TDS_values[4] += stree_TDS.num_search_comps;
+    stree_TDS_values[4] += stree_TDS.num_search_comps;
     stree_TDS.num_search_rots /= (double) nSearches * 1000.0;
-    t1_stree_TDS_values[5] += stree_TDS.num_search_rots;
+    stree_TDS_values[5] += stree_TDS.num_search_rots;
     stree_TDS_search_time /= 1000.0;
-    t1_stree_TDS_values[6] += stree_TDS_search_time;
+    stree_TDS_values[6] += stree_TDS_search_time;
 
     
     stree_BUS.num_ins_comps /= (double) nDeletions * 1000.0;
-    t1_stree_BUS_values[0] += stree_BUS.num_ins_comps;
+    stree_BUS_values[0] += stree_BUS.num_ins_comps;
     stree_BUS.num_ins_rots /= (double) nDeletions * 1000.0;
-    t1_stree_BUS_values[1] += stree_BUS.num_ins_rots;
+    stree_BUS_values[1] += stree_BUS.num_ins_rots;
 
     stree_BUS.num_del_comps /= (double) nDeletions * 1000.0;
-    t1_stree_BUS_values[2] += stree_BUS.num_del_comps;
+    stree_BUS_values[2] += stree_BUS.num_del_comps;
     stree_BUS.num_del_rots /= (double) nDeletions * 1000.0;
-    t1_stree_BUS_values[3] += stree_BUS.num_del_rots;
+    stree_BUS_values[3] += stree_BUS.num_del_rots;
 
     stree_BUS.num_search_comps /= (double) nSearches * 1000.0;
-    t1_stree_BUS_values[4] += stree_BUS.num_search_comps;
+    stree_BUS_values[4] += stree_BUS.num_search_comps;
     stree_BUS.num_search_rots /= (double) nSearches * 1000.0;
-    t1_stree_BUS_values[5] += stree_BUS.num_search_rots;
+    stree_BUS_values[5] += stree_BUS.num_search_rots;
     stree_BUS_search_time /= 1000.0;
-    t1_stree_BUS_values[6] += stree_BUS_search_time;
+    stree_BUS_values[6] += stree_BUS_search_time;
 
 
     rbtree.num_ins_comps /= (double) nDeletions * 1000.0;
-    t1_rbtree_values[0] += rbtree.num_ins_comps;
+    rbtree_values[0] += rbtree.num_ins_comps;
     rbtree.num_ins_rots /= (double) nDeletions * 1000.0;
-    t1_rbtree_values[1] += rbtree.num_ins_rots;
+    rbtree_values[1] += rbtree.num_ins_rots;
 
     rbtree.num_del_comps /= (double) nDeletions * 1000.0;
-    t1_rbtree_values[2] += rbtree.num_del_comps;
+    rbtree_values[2] += rbtree.num_del_comps;
     rbtree.num_del_rots /= (double) nDeletions * 1000.0;
-    t1_rbtree_values[3] += rbtree.num_del_rots;
+    rbtree_values[3] += rbtree.num_del_rots;
 
     rbtree.num_search_comps /= (double) nSearches * 1000.0;
-    t1_rbtree_values[4] += rbtree.num_search_comps;
+    rbtree_values[4] += rbtree.num_search_comps;
     rbtree.num_search_rots /= (double) nSearches * 1000.0;
-    t1_rbtree_values[5] += rbtree.num_search_rots;
+    rbtree_values[5] += rbtree.num_search_rots;
     rbtree_search_time /= 1000.0;
-    t1_rbtree_values[6] += rbtree_search_time;
+    rbtree_values[6] += rbtree_search_time;
 
 
     #if 0
@@ -173,9 +173,9 @@ void table_values_init()
 {
     for (int i = 0; i < 7; ++i)
     {
-        t1_stree_BUS_values[i] = 0.0;
-        t1_stree_TDS_values[i] = 0.0;
-        t1_rbtree_values[i] = 0.0;
+        stree_BUS_values[i] = 0.0;
+        stree_TDS_values[i] = 0.0;
+        rbtree_values[i] = 0.0;
     }
 }
 
@@ -183,9 +183,9 @@ void table_values_avg()
 {
     for (int i = 0; i < 7; ++i)
     {
-        t1_stree_BUS_values[i] /= NUM_TRIALS;
-        t1_stree_TDS_values[i] /= NUM_TRIALS;
-        t1_rbtree_values[i] /= NUM_TRIALS;
+        stree_BUS_values[i] /= NUM_TRIALS;
+        stree_TDS_values[i] /= NUM_TRIALS;
+        rbtree_values[i] /= NUM_TRIALS;
     }
 }
 
@@ -235,8 +235,10 @@ int main(int argc, char* argv[])
     int size_alpha_arr = sizeof(alpha_arr) / sizeof(alpha_arr[0]);
 
     int activity_ratio[] = {0, 20, 50, 80};
+    int size_act_ratio = sizeof(activity_ratio) / sizeof(activity_ratio[0]);
 
-    ofstream t1_out("table1.txt");
+    ofstream t1_out("table2.txt");
+    ofstream t2_out("table3.txt");
 
     for(int i = 0; i < size_alpha_arr; ++i)
     {
@@ -254,36 +256,45 @@ int main(int argc, char* argv[])
         for(int j = 0; j < 7; ++j)
         {
             t1_out << fixed << setprecision(2);
-            t1_out << t1_stree_BUS_values[j] << "\t";
+            t1_out << stree_BUS_values[j] << "\t";
         }
 
         t1_out << "\n";
         for(int j = 0; j < 7; ++j)
         {
             t1_out << fixed << setprecision(2);
-            t1_out << t1_stree_TDS_values[j] << "\t";
+            t1_out << stree_TDS_values[j] << "\t";
         }
 
         t1_out << "\n";
         for(int j = 0; j < 7; ++j)
         {
             t1_out << fixed << setprecision(2);
-            t1_out << t1_rbtree_values[j] << "\t";
+            t1_out << rbtree_values[j] << "\t";
         }
 
         t1_out << "\n";
     }
 
-    #if 0
-    for(int j = 0; j < 4; ++j)
+    for(int i = 0; i < size_act_ratio; ++i)
     {
-        cout << "\n\nActivity Ratio: " << activity_ratio[j] << endl;
-        cout << "Skew Factor\tMethod Used\tInsert\t\tDeletion\tSearch\t\tCPU Time\n";
-        for(int i = 0; i < size_alpha_arr; ++i)
+        t2_out << activity_ratio[i] << "\n";
+
+        for(int j = 0; j < size_alpha_arr; ++j)
         {
-            generate_APT(splay_tree_TDS, splay_tree_BUS, rbtree, access_probability_table, uset);
-            test_activity_ratio(splay_tree_TDS, splay_tree_BUS, rbtree, access_probability_table, uset, activity_ratio[j], alpha_arr[i]);
+
+            table_values_init();
+            for(int k = 0; k < NUM_TRIALS; ++k)
+            {
+                generate_APT(splay_tree_TDS, splay_tree_BUS, rbtree, access_probability_table, uset);
+                test_activity_ratio(splay_tree_TDS, splay_tree_BUS, rbtree, access_probability_table, uset, activity_ratio[i], alpha_arr[j]);
+            }
+            table_values_avg();
+
+            t2_out << fixed << setprecision(2);
+            t2_out << skew_factor[j] << "\t" << rbtree_values[6] << "\t" << stree_BUS_values[6] << "\t" << stree_TDS_values[6] << "\n";
         }
     }
-    #endif
+
+    return 0;
 }
