@@ -9,7 +9,7 @@ BU = []
 TD = []
 RB = []
 i = 0
-f = open("table1.txt","r")
+f = open("table2.txt","r")
 
 f1 = f.readlines()
 for line in f1:
