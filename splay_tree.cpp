@@ -1,58 +1,10 @@
+/*
+ * C++ Program to Implement Splay Tree
+ */
+
 #include <iostream>
-using namespace std;
-
-struct SplayNode
-{
-    int value;
-    struct SplayNode *left;
-    struct SplayNode *right;
-
-    SplayNode(int v = -1): value(v), left(NULL), right(NULL) {}
-};
-
-enum Splaying { TOP_DOWN, BOTTOM_UP };
-
-class SplayTree
-{
-    SplayNode *root;
-    Splaying splaying;
-
-    SplayNode*                    splay(SplayNode*, int);
-    SplayNode*                    splayBottomUp(SplayNode*, int);
-    SplayNode*                    splayTopDown (SplayNode*, int);
-    SplayNode*                    join (SplayNode*, SplayNode*);
-    pair<SplayNode*, SplayNode*>  split(SplayNode*, int);
-    void preorderUtil(SplayNode*);
-    void inorderUtil(SplayNode*);
-    void clearUtil(SplayNode*);
-
-    SplayNode* zig   (SplayNode*);
-    SplayNode* zag   (SplayNode*);
-    SplayNode* zigzig(SplayNode*);
-    SplayNode* zagzig(SplayNode*);
-    SplayNode* zagzag(SplayNode*);
-    SplayNode* zigzag(SplayNode*);
-
-public:
-
-    SplayTree(Splaying s = TOP_DOWN): splaying(s), root(NULL) {}
-
-    void insert(int);
-    bool search(int);
-    void remove(int);
-
-    void preorder() { preorderUtil(root); cout << endl; }
-    void inorder() { inorderUtil(root); cout << endl; }
-
-    bool isEmpty() { return root == NULL; }
-    void clear() { clearUtil(root); root = NULL; }
-
-    ~SplayTree()
-    {
-        clear();
-    }
-};
-
+#include "timer.h"
+#include "splay_tree.h"
 
 void SplayTree::clearUtil(SplayNode* node)
 {
@@ -63,10 +15,12 @@ void SplayTree::clearUtil(SplayNode* node)
     delete node;
 }
 
-
 // Right Rotate
 SplayNode* SplayTree::zig(SplayNode *node)
 {
+    // Increment the number of rotations
+    ++num_rotations;
+
     SplayNode* l = node->left;
     node->left = l->right;
     l->right = node;
@@ -76,6 +30,9 @@ SplayNode* SplayTree::zig(SplayNode *node)
 // Left Rotate
 SplayNode* SplayTree::zag(SplayNode *node)
 {
+    // Increment the number of rotations
+    ++num_rotations;
+
     SplayNode *r = node->right;
     node->right = r->left;
     r->left = node;
@@ -110,19 +67,30 @@ SplayNode* SplayTree::zigzag(SplayNode *node)
 
 SplayNode* SplayTree::splayBottomUp(SplayNode* node, int val)
 {
+    /* Increment the number of comparisons
+       i.e. the number of nodes visited */
+    ++num_comparisons;
+
     // Base cases: node is NULL or val is present at node
     if(!node || node->value == val)
         return node;
 
+    ++num_comparisons;
     // val lies in left subtree
     if(node->value > val)
     {
         // Key is not in tree
         if(!node->left) return node;
 
+        /* Increment the number of comparisons
+           i.e. the number of nodes visited */
+        ++num_comparisons;
         if(node->left->value == val)
+        {
             return zig(node);
+        }
 
+        ++num_comparisons;
         // Zig-Zig (Left Left)
         if(node->left->value > val)
         {
@@ -134,7 +102,6 @@ SplayNode* SplayTree::splayBottomUp(SplayNode* node, int val)
         // Zag-Zig (Left Right)
         // recursively bring val as root of left-right
         node->left->right = splayBottomUp (node->left->right, val);
-
         return (node->left->right) ? zagzig(node) : zig(node);
     }
     else    // val lies in right subtree
@@ -142,9 +109,15 @@ SplayNode* SplayTree::splayBottomUp(SplayNode* node, int val)
         // val is not in tree
         if(!node->right) return node;
 
+        /* Increment the number of comparisons
+           i.e. the number of nodes visited */
+        ++num_comparisons;
         if (node->right->value == val)
+        {
             return zag (node);
+        }
 
+        ++num_comparisons;
         // Zag-Zag (Right Right)
         if(node->right->value < val)
         {
@@ -156,7 +129,6 @@ SplayNode* SplayTree::splayBottomUp(SplayNode* node, int val)
         // Zig-Zag (Right Left)
         // recursively bring val as root of right-left
         node->right->left = splayBottomUp (node->right->left, val);
-
         return (node->right->left) ? zigzag(node) : zag(node);
     }
 }
@@ -174,13 +146,21 @@ SplayNode* SplayTree::splayTopDown(SplayNode* node, int val)
 
     while(1)
     {
+        /* Increment the number of comparisons
+           i.e. the number of nodes visited */
+        ++num_comparisons;
         if (val == node->value)
             break;
 
+        ++num_comparisons;
         if(val < node->value)
         {
             if(!node->left)
                 break;
+
+            /* Increment the number of comparisons
+               i.e. the number of nodes visited */
+            ++num_comparisons;
             if(val < node->left->value)
             {
                 // only zig-zig case needs to rotate once
@@ -198,6 +178,9 @@ SplayNode* SplayTree::splayTopDown(SplayNode* node, int val)
         {
             if(!node->right)
                 break;
+            /* Increment the number of comparisons
+               i.e. the number of nodes visited */
+            ++num_comparisons;
             if(val > node->right->value)
             {
                 // only zag-zag mode need to rotate once
@@ -222,7 +205,8 @@ SplayNode* SplayTree::splayTopDown(SplayNode* node, int val)
 
 SplayNode* SplayTree::splay(SplayNode* node, int val)
 {
-    if (splaying == BOTTOM_UP)
+    num_comparisons = num_rotations = 0;
+    if (splaying == Splaying::BOTTOM_UP)
         return splayBottomUp(node, val);
     else
         return splayTopDown(node, val);
@@ -240,7 +224,7 @@ SplayNode* SplayTree::join(SplayNode* left, SplayNode* right)
 
 
 // left <= val, val < right
-pair<SplayNode*, SplayNode*> SplayTree::split(SplayNode* x, int val)
+std::pair<SplayNode*, SplayNode*> SplayTree::split(SplayNode* x, int val)
 {
     if(!x) return {NULL, NULL};
     x = splay(x, val);
@@ -260,30 +244,41 @@ bool SplayTree::search(int val)
 {
     if(isEmpty()) return false;
 
+    bool ret = true;
     root = splay(root, val);
+
+    // add rotations and comparisons
+    num_search_comps += num_comparisons;
+    num_search_rots += num_rotations;
+
     if (root->value != val)
-    {
-        cout << val << " not found in the SplayTree\n";
-        return false;
-    }
-    cout << val << " is present in the SplayTree\n";
-    return true;
+        ret = false;
+
+    return ret;
 }
 
 void SplayTree::insert(int val)
 {
-    pair<SplayNode*, SplayNode*> p;
+    std::pair<SplayNode*, SplayNode*> p;
 
     if(isEmpty())
     {
         root = new SplayNode(val);
         return;
     }
-    root = splay(root, val);
-    if(root->value == val)
-        return;
-
     p = split(root, val);
+
+    // add rotations and comparisons
+    num_ins_comps += num_comparisons;
+    num_ins_rots += num_rotations;
+
+    if(p.first && p.first->value == val)
+    {
+        root = p.first;
+        root->right = p.second;
+        return;
+    }
+
     root = new SplayNode(val);
     root->left = p.first;
     root->right = p.second;
@@ -297,11 +292,21 @@ void SplayTree::remove(int val)
     if(isEmpty()) return;
 
     root = splay (root, val);
+
+    // add rotations and comparisons
+    num_del_comps += num_comparisons;
+    num_del_rots += num_rotations;
+
     if(root->value != val)
         return;
 
     rem_node = root;
     root = join(root->left, root->right);
+
+    // add rotations and comparisons as join() also calls splay()
+    num_del_comps += num_comparisons;
+    num_del_rots += num_rotations;
+
     delete rem_node;
     rem_node = NULL;
 }
@@ -312,7 +317,7 @@ void SplayTree::inorderUtil(SplayNode* node)
     if(node)
     {
         inorderUtil(node->left);
-        cout << node->value << " ";
+        std::cout << node->value << " ";
         inorderUtil(node->right);
     }
 }
@@ -322,39 +327,8 @@ void SplayTree::preorderUtil(SplayNode* node)
 {
     if(node)
     {
-        cout << node->value << " ";
+        std::cout << node->value << " ";
         preorderUtil(node->left);
         preorderUtil(node->right);
     }
-}
-
-
-int main()
-{
-    //SplayTree splay_tree(BOTTOM_UP);
-    SplayTree splay_tree;
-
-    splay_tree.insert(30);
-    splay_tree.inorder();
-
-    splay_tree.insert(25);
-    splay_tree.inorder();
-
-    splay_tree.insert(60);
-    splay_tree.inorder();
-
-    splay_tree.insert(70);
-    splay_tree.inorder();
-
-    splay_tree.insert(27);
-    splay_tree.inorder();
-
-    splay_tree.search(25);
-    splay_tree.search(29);
-    splay_tree.search(70);
-    splay_tree.search(77);
-
-    splay_tree.remove(70);
-    splay_tree.search(70);
-    return 0;
 }
